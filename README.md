@@ -1,5 +1,7 @@
 # PokeApp React
 
+This program is for Pokemon players who have trouble remembering type effectiveness (and don't like looking at charts). This program runs on your local host.
+
 This [React](https://reactjs.org/) project integrates with the [PokeAPI](https://pokeapi.co/) to provide the user with a type effectiveness guide. Using the API, you are able to look up any Pokemon's type, weakness, strength, and stats.  
 
 This project was created with:
