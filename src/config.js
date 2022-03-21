@@ -1,6 +1,6 @@
 const config = {
   pokeAPI: {
-    uri: '/api/v2/',
+    uri: 'https://pokeapi.co/api/v2',
   },
 };
 

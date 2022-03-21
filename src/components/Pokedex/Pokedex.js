@@ -1,79 +1,169 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
-const Pokedex = () => {
+import config from '../../config';
+import { handleError, handleResponse } from '../../utils/api/apiUtils';
+import Overview from './Overview/Overview';
+import TypeEffectiveness from './TypeEffectiveness/TypeEffectiveness';
+
+import './Pokedex.scss';
+
+const PokedexContent = () => {
+  const [listOfPokemon, setListOfPokemon] = useState([]);
+  const [selectedPokemon, setSelectedPokemon] = useState(null);
+  const [page, setPage] = useState('Type Effectiveness');
+  const [showPokemonSelection, setShowPokemonSelection] = useState(false);
+  const [offset, setOffset] = useState(0);
+  const [totalPokemon, setTotalPokemon] = useState(0);
+
+  useEffect(() => {
+    const url = `${config.pokeAPI.uri}/pokemon?limit=100&offset=0`;
+    axios
+      .get(url)
+      .then(handleResponse)
+      .catch(handleError)
+      .then((response) => {
+        setListOfPokemon(response.data.results);
+        setTotalPokemon(response.data.count);
+        axios
+          .get(response.data.results[0].url)
+          .then(handleResponse)
+          .catch(handleError)
+          .then((resp) => {
+            setSelectedPokemon(resp.data);
+          });
+      });
+  }, []);
+
+  useEffect(() => {
+    const url = `${config.pokeAPI.uri}/pokemon?limit=100&offset=${offset}`;
+    axios
+      .get(url)
+      .then(handleResponse)
+      .catch(handleError)
+      .then((response) => {
+        setListOfPokemon(response.data.results);
+      });
+  }, [offset]);
+
+  const handleButton = (event) => {
+    setPage(event.target.innerText);
+  };
+
+  const handleChangeButton = () => {
+    setShowPokemonSelection(!showPokemonSelection);
+  };
+
+  const handleChangePokemon = (event) => {
+    const url = `${config.pokeAPI.uri}/pokemon/${event.target.innerText}`;
+    console.log(url);
+    axios
+      .get(url)
+      .then(handleResponse)
+      .catch(handleError)
+      .then((resp) => {
+        setSelectedPokemon(resp.data);
+        setShowPokemonSelection(false);
+      });
+  };
+
+  const handleNextButton = () => {
+    setOffset(offset + 100);
+  };
+
+  const handlePrevButton = () => {
+    setOffset(offset - 100);
+  };
+
   return (
-    <div className="tile is-ancestor">
+    <div className="tile is-ancestor mb-5">
       <div className="tile is-4 is-vertical is-parent">
         <div className="tile is-child box">
-          <p className="title">One</p>
-          <p>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin
-            ornare magna eros, eu pellentesque tortor vestibulum ut. Maecenas
-            non massa sem. Etiam finibus odio quis feugiat facilisis.
-          </p>
-        </div>
-        <div className="tile is-child box">
-          <p className="title">Two</p>
-          <p>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin
-            ornare magna eros, eu pellentesque tortor vestibulum ut. Maecenas
-            non massa sem. Etiam finibus odio quis feugiat facilisis.
-          </p>
+          <div className="card">
+            <div className="card-image">
+              <figure className="image is-3by3">
+                <img
+                  src={
+                    selectedPokemon
+                      ? selectedPokemon.sprites.front_default
+                      : 'https://bulma.io/images/placeholders/1280x960.png'
+                  }
+                  alt={selectedPokemon ? selectedPokemon.name : 'placeholder'}
+                />
+              </figure>
+            </div>
+          </div>
+          <div className="mt-6">
+            {!showPokemonSelection && (
+              <button className="button is-danger" onClick={handleChangeButton}>
+                Select Different Pokemon
+              </button>
+            )}
+            {showPokemonSelection && (
+              <article className="message is-danger">
+                <div className="message-header">
+                  <p>Select Pokemon</p>
+                  <button
+                    className="delete"
+                    aria-label="cancel"
+                    onClick={handleChangeButton}></button>
+                </div>
+                <div className="message-body">
+                  <ul>
+                    {listOfPokemon.map((el) => (
+                      <li>
+                        <a onClick={handleChangePokemon}>{el.name}</a>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="mt-2">
+                    {offset > 0 && (
+                      <button
+                        className="button is-small is-danger mx-2"
+                        onClick={handlePrevButton}>
+                        Prev
+                      </button>
+                    )}
+                    {offset < totalPokemon && (
+                      <button
+                        className="button is-small is-danger mx-2"
+                        onClick={handleNextButton}>
+                        Next
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </article>
+            )}
+          </div>
         </div>
       </div>
       <div className="tile is-parent">
         <div className="tile is-child box">
-          <div className="tabs is-boxed is-fullwidth">
-            <ul>
-              <li className="is-active">
-                <a>
-                  <span>Pictures</span>
-                </a>
-              </li>
-              <li>
-                <a>
-                  <span>Music</span>
-                </a>
-              </li>
-              <li>
-                <a>
-                  <span>Videos</span>
-                </a>
-              </li>
-              <li>
-                <a>
-                  <span>Documents</span>
-                </a>
-              </li>
-            </ul>
+          <div className="column">
+            <button className="button is-danger mx-2" onClick={handleButton}>
+              Type Effectiveness
+            </button>
+            <button className="button is-danger mx-2" onClick={handleButton}>
+              Overview
+            </button>
           </div>
-          <p className="title">Three</p>
-          <p>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam
-            semper diam at erat pulvinar, at pulvinar felis blandit. Vestibulum
-            volutpat tellus diam, consequat gravida libero rhoncus ut. Morbi
-            maximus, leo sit amet vehicula eleifend, nunc dui porta orci, quis
-            semper odio felis ut quam.
-          </p>
-          <p>
-            Suspendisse varius ligula in molestie lacinia. Maecenas varius eget
-            ligula a sagittis. Pellentesque interdum, nisl nec interdum maximus,
-            augue diam porttitor lorem, et sollicitudin felis neque sit amet
-            erat. Maecenas imperdiet felis nisi, fringilla luctus felis
-            hendrerit sit amet. Aenean vitae gravida diam, finibus dignissim
-            turpis. Sed eget varius ligula, at volutpat tortor.
-          </p>
-          <p>
-            Integer sollicitudin, tortor a mattis commodo, velit urna rhoncus
-            erat, vitae congue lectus dolor consequat libero. Donec leo ligula,
-            maximus et pellentesque sed, gravida a metus. Cras ullamcorper a
-            nunc ac porta. Aliquam ut aliquet lacus, quis faucibus libero.
-            Quisque non semper leo.
-          </p>
+          {page === 'Type Effectiveness' &&
+            selectedPokemon &&
+            selectedPokemon.types.map((el) => (
+              <TypeEffectiveness
+                typeName={el.type.name}
+                typeUrl={el.type.url}
+              />
+            ))}
+
+          {page === 'Overview' && selectedPokemon && (
+            <Overview selectedPokemon={selectedPokemon} />
+          )}
         </div>
       </div>
     </div>
   );
 };
 
-export default Pokedex;
+export default PokedexContent;
